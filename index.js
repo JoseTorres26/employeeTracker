@@ -75,10 +75,10 @@ function mainMenu() {
 function viewDepartments(callback) {
   db.query('SELECT * FROM departments', (err, rows) => {
     if (err) {
-      console.error('Error viewing departments:', err);
+      console.error('Error viewing departments', err);
       return;
     }
-    console.table('Departments:', rows);
+    console.table('All departments', rows);
     callback();
   });
 }
@@ -86,10 +86,10 @@ function viewDepartments(callback) {
 function viewRoles(callback) {
   db.query('SELECT * FROM roles', (err, rows) => {
     if (err) {
-      console.error('Error viewing roles:', err);
+      console.error('Error viewing roles', err);
       return;
     }
-    console.table('Roles:', rows);
+    console.table('all roles', rows);
     callback();
   });
 }
@@ -114,10 +114,147 @@ function viewEmployees(callback) {
   
     db.query(query, (err, rows) => {
       if (err) {
-        console.error('Error viewing employees:', err);
+        console.error('Error viewing employees', err);
         return;
       }
-      console.table('Employees:', rows);
+      console.table('all employees', rows);
       callback();
     });
+  }
+
+  function addEmployee(callback) {
+    
+    inquirer
+      .prompt([
+        {
+          name: 'first_name',
+          type: 'input',
+          message: 'What is the employees first name?',
+        },
+        {
+          name: 'last_name',
+          type: 'input',
+          message: 'What is the employees last name?',
+        },
+        {
+          name: 'role_name',
+          type: 'input',
+          message: 'What is the employees role?',
+        },
+        {
+          name: 'manager_name',
+          type: 'input',
+          message: "What is the manager's name? (leave blank if none)",
+        },
+      ])
+      .then(answers => {
+        const { first_name, last_name, role_name, manager_name } = answers;
+  
+        const roleQuery = 'SELECT id FROM roles WHERE title = ?';
+        db.query(roleQuery, [role_name], (error, roleResults) => {
+          if (error) {
+            console.error('Error', error);
+            callback();
+            return;
+          }
+  
+          const roleId = roleResults[0].id;
+  
+          if (manager_name.trim() === '') {
+            const insertQuery = 'INSERT INTO employees (first_name, last_name, role_id) VALUES (?, ?, ?)';
+            db.query(insertQuery, [first_name, last_name, roleId], (error, insertResults) => {
+              if (error) {
+                console.error('Error', error);
+              } else {
+                console.log('Employee added successfully!');
+              }
+              callback();
+            });
+          } else {
+            const managerQuery = 'SELECT id FROM employees WHERE CONCAT(first_name, " ", last_name) = ?';
+            db.query(managerQuery, [manager_name], (error, managerResults) => {
+              if (error) {
+                console.error('Error', error);
+                callback();
+                return;
+              }
+              if (managerResults.length === 0) {
+                console.error('Manager not found.');
+                callback();
+                return;
+              }
+              const managerId = managerResults[0].id;
+  
+              const insertQuery =
+                'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
+              db.query(insertQuery, [first_name, last_name, roleId, managerId], (error, insertResults) => {
+                if (error) {
+                  console.error('Error', error);
+                } else {
+                  console.log('Employee added successfully!');
+                }
+                callback();
+              });
+            });
+          }
+        });
+      });
+  }
+
+  function addDepartment(callback) {
+    inquirer
+      .prompt([
+        {
+          name: 'department_name',
+          type: 'input',
+          message: 'What is the name of the department?',
+        },
+      ])
+      .then(answers => {
+        const { department_name } = answers;
+        const query = 'INSERT INTO departments (department_name) VALUES (?)';
+        db.query(query, [department_name], (error, results) => {
+          if (error) {
+            console.error('Error', error);
+          } else {
+            console.log('Department added successfully!');
+          }
+          callback();
+        });
+      });
+  }
+  
+  function addRole(callback) {
+    inquirer
+      .prompt([
+        {
+          name: 'title',
+          type: 'input',
+          message: 'what is the role?'
+        },
+        {
+          name: 'salary',
+          type: 'input',
+          message: 'How much money we talkin?'
+        },
+        {
+          name: 'department_name',
+          type: 'input',
+          message: 'What is the name of the department?'
+        }
+      ])
+      .then(answers => {
+        const { title, salary, department_name } = answers;
+        const query = `INSERT INTO roles (title, salary, department_id)
+                       SELECT ?, ?, d.id FROM departments d
+                       WHERE d.department_name = ?`;
+        db.query(query, [title, salary, department_name], (error, results) => {
+          if (error) {
+            console.error('Error', error);
+          } else {
+            console.log('Role added successfully!');
+          }
+          callback();
+        });
+      });
   }
