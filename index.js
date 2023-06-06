@@ -258,3 +258,54 @@ function viewEmployees(callback) {
         });
       });
   }
+
+  function updateRole(callback) {
+    // Fetch the list of employee names from the database
+    const query = `SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS current_role
+                   FROM employees e
+                   INNER JOIN roles r ON e.role_id = r.id`;
+  
+    db.query(query, (error, results) => {
+      if (error) {
+        console.error('Error', error);
+        callback();
+        return;
+      }
+  
+      const employeeChoices = results.map(result => ({
+        name: result.employee_name,
+        value: { id: result.id, name: result.employee_name, currentRole: result.current_role }
+      }));
+  
+      inquirer
+        .prompt([
+          {
+            name: 'employee',
+            type: 'list',
+            message: 'Select employee',
+            choices: employeeChoices
+          },
+          {
+            name: 'new_role',
+            type: 'input',
+            message: 'What is their new role?'
+          }
+        ])
+        .then(answers => {
+          const { employee, new_role } = answers;
+          const query = `UPDATE employees e
+                         SET e.role_id = (SELECT id FROM roles WHERE title = ? LIMIT 1)
+                         WHERE e.id = ?`;
+  
+          db.query(query, [new_role, employee.id], (error, results) => {
+            if (error) {
+              console.error('Error', error);
+            } else {
+              console.log('Role updated successfully!');
+            }
+            callback();
+          });
+        });
+    });
+  }
+
