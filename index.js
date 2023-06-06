@@ -43,13 +43,13 @@ function mainMenu() {
       const choice = answers.choice;
 
       switch (choice) {
-        case 'View all departments':
+        case 'View departments':
           viewDepartments(mainMenu);
           break;
-        case 'View all roles':
+        case 'View roles':
           viewRoles(mainMenu);
           break;
-        case 'View all employees':
+        case 'View employees':
           viewEmployees(mainMenu);
           break;
         case 'Add an employee':
@@ -78,7 +78,7 @@ function viewDepartments(callback) {
       console.error('Error viewing departments', err);
       return;
     }
-    console.table('All departments', rows);
+    console.table('View departments', rows);
     callback();
   });
 }
@@ -89,7 +89,7 @@ function viewRoles(callback) {
       console.error('Error viewing roles', err);
       return;
     }
-    console.table('all roles', rows);
+    console.table('View roles', rows);
     callback();
   });
 }
@@ -117,7 +117,7 @@ function viewEmployees(callback) {
         console.error('Error viewing employees', err);
         return;
       }
-      console.table('all employees', rows);
+      console.table('View employees', rows);
       callback();
     });
   }
@@ -260,7 +260,6 @@ function viewEmployees(callback) {
   }
 
   function updateRole(callback) {
-    // Fetch the list of employee names from the database
     const query = `SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS current_role
                    FROM employees e
                    INNER JOIN roles r ON e.role_id = r.id`;
