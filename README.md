@@ -5,6 +5,8 @@
 
 ## Description
 
+https://www.loom.com/share/db9952c40942494eb8385758d95828a4
+
 The employee tracker is a cli designed to retrieve and edit data from your job database. this database includes department, roles, and employees. you can view data, add data, and edit a role.
 
 ## Table of Contents
